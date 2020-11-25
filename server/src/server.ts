@@ -23,7 +23,12 @@ import __prod__ from './constants';
 const startServer = async () => {
   const app = express();
 
-  app.use(cors());
+  app.use(
+    cors({
+      origin: 'http://localhost:3000',
+      credentials: true,
+    }),
+  );
   app.use(express.json());
 
   // createConnection method will automatically read connection options
@@ -61,7 +66,7 @@ const startServer = async () => {
     }),
   });
 
-  apolloServer.applyMiddleware({ app });
+  apolloServer.applyMiddleware({ app, cors: false });
 
   app.use((request: Request, response: Response, _: NextFunction) => {
     return response.status(500).json({
