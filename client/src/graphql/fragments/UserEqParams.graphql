@@ -1,0 +1,4 @@
+fragment UserEqParams on User {
+  id
+  username
+}

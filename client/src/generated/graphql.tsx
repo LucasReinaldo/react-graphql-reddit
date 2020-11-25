@@ -19,7 +19,7 @@ export type Query = {
   hello: Scalars['String'];
   posts: Array<Post>;
   post?: Maybe<Post>;
-  me: UserResponse;
+  me: User;
   users: Array<User>;
   user?: Maybe<User>;
 };
@@ -42,18 +42,6 @@ export type Post = {
   updated_at: Scalars['DateTime'];
 };
 
-
-export type UserResponse = {
-  __typename?: 'UserResponse';
-  errors?: Maybe<Array<FieldError>>;
-  user?: Maybe<User>;
-};
-
-export type FieldError = {
-  __typename?: 'FieldError';
-  field: Scalars['String'];
-  message: Scalars['String'];
-};
 
 export type User = {
   __typename?: 'User';
@@ -111,10 +99,27 @@ export type MutationDeleteUserArgs = {
   id: Scalars['String'];
 };
 
+export type UserResponse = {
+  __typename?: 'UserResponse';
+  errors?: Maybe<Array<FieldError>>;
+  user?: Maybe<User>;
+};
+
+export type FieldError = {
+  __typename?: 'FieldError';
+  field: Scalars['String'];
+  message: Scalars['String'];
+};
+
 export type UsernamePasswordInput = {
   username: Scalars['String'];
   password: Scalars['String'];
 };
+
+export type UserEqParamsFragment = (
+  { __typename?: 'User' }
+  & Pick<User, 'id' | 'username'>
+);
 
 export type LoginMutationVariables = Exact<{
   username: Scalars['String'];
@@ -128,7 +133,7 @@ export type LoginMutation = (
     { __typename?: 'UserResponse' }
     & { user?: Maybe<(
       { __typename?: 'User' }
-      & Pick<User, 'id' | 'username'>
+      & UserEqParamsFragment
     )>, errors?: Maybe<Array<(
       { __typename?: 'FieldError' }
       & Pick<FieldError, 'field' | 'message'>
@@ -148,7 +153,7 @@ export type RegisterMutation = (
     { __typename?: 'UserResponse' }
     & { user?: Maybe<(
       { __typename?: 'User' }
-      & Pick<User, 'id' | 'username'>
+      & UserEqParamsFragment
     )>, errors?: Maybe<Array<(
       { __typename?: 'FieldError' }
       & Pick<FieldError, 'field' | 'message'>
@@ -156,13 +161,28 @@ export type RegisterMutation = (
   ) }
 );
 
+export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
+
+export type MeQuery = (
+  { __typename?: 'Query' }
+  & { me: (
+    { __typename?: 'User' }
+    & UserEqParamsFragment
+  ) }
+);
+
+export const UserEqParamsFragmentDoc = gql`
+    fragment UserEqParams on User {
+  id
+  username
+}
+    `;
 export const LoginDocument = gql`
     mutation Login($username: String!, $password: String!) {
   login(options: {username: $username, password: $password}) {
     user {
-      id
-      username
+      ...UserEqParams
     }
     errors {
       field
@@ -170,7 +190,7 @@ export const LoginDocument = gql`
     }
   }
 }
-    `;
+    ${UserEqParamsFragmentDoc}`;
 
 export function useLoginMutation() {
   return Urql.useMutation<LoginMutation, LoginMutationVariables>(LoginDocument);
@@ -179,8 +199,7 @@ export const RegisterDocument = gql`
     mutation Register($username: String!, $password: String!) {
   createUser(options: {username: $username, password: $password}) {
     user {
-      id
-      username
+      ...UserEqParams
     }
     errors {
       field
@@ -188,8 +207,19 @@ export const RegisterDocument = gql`
     }
   }
 }
-    `;
+    ${UserEqParamsFragmentDoc}`;
 
 export function useRegisterMutation() {
   return Urql.useMutation<RegisterMutation, RegisterMutationVariables>(RegisterDocument);
+};
+export const MeDocument = gql`
+    query Me {
+  me {
+    ...UserEqParams
+  }
+}
+    ${UserEqParamsFragmentDoc}`;
+
+export function useMeQuery(options: Omit<Urql.UseQueryArgs<MeQueryVariables>, 'query'> = {}) {
+  return Urql.useQuery<MeQuery>({ query: MeDocument, ...options });
 };
