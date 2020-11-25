@@ -10,6 +10,7 @@ import {
 } from 'type-graphql';
 import { hash, verify } from 'argon2';
 
+import { COOKIE_NAME } from '../constants';
 import { MyContext } from '../types';
 
 import User from '../entities/User';
@@ -185,5 +186,20 @@ export default class UserResolver {
     await User.delete({ id });
 
     return user;
+  }
+
+  @Mutation(() => Boolean)
+  async logout(@Ctx() { req, res }: MyContext): Promise<boolean> {
+    return new Promise((resolve) =>
+      req._destroy(null, (err) => {
+        res.clearCookie(COOKIE_NAME);
+        if (err) {
+          console.log(err);
+          resolve(false);
+          return;
+        }
+        resolve(true);
+      }),
+    );
   }
 }
