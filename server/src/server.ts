@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import 'reflect-metadata';
 import express, { Request, Response, NextFunction } from 'express';
 import 'express-async-errors';
@@ -11,6 +12,7 @@ import { buildSchema } from 'type-graphql';
 import redis from 'redis';
 import session from 'express-session';
 import connectRedis from 'connect-redis';
+
 import { MyContext } from './types';
 
 import HelloResolver from './resolvers/hello';
